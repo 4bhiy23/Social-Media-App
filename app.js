@@ -8,6 +8,7 @@ const userModel = require("./models/user")
 const postModel = require("./models/post")
 const path = require('path')
 const user = require('./models/user')
+const upload = require('./utils/multer.config')
 app.set("view engine" , "ejs")
 app.use(cookieParser())
 app.use(express.json())
@@ -20,6 +21,19 @@ app.get("/" , (req , res) => {
 
 app.get("/login" , (req , res) => {
     res.render("login")
+})
+
+app.get("/profile/upload" , async(req , res) => {
+    res.render("upload")
+})
+
+app.post("/upload" , isLoggedIn , upload.single("profilePic") , async (req , res) => {
+    console.log(req.file)
+    let user = await userModel.findOne({email: req.user.email})
+    user.profile = req.file.filename
+    console.log(user);
+    await user.save()
+    res.redirect("/profile")
 })
 
 app.get("/update/:id", isLoggedIn , async (req , res) => {
@@ -104,7 +118,10 @@ app.post("/login" , async (req , res) => {
 app.post("/register" , async (req , res) => {
     let {username , name , password , email , age} = req.body
     let existingUser = await userModel.findOne({ email });
-    if (existingUser) return res.send("User Already exists");
+    if (existingUser){
+        res.send("User Already exists");
+        res.redirect("/login")
+    }
         
     bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(password, salt, async function(err, hash) {
@@ -118,7 +135,7 @@ app.post("/register" , async (req , res) => {
 
             let token = jwt.sign({email: user.email} , "shh")
             res.cookie("token" , token)
-            res.send("User registered successfully");
+            res.redirect("/profile");
             
         });
     });        

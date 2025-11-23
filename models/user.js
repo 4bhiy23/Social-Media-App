@@ -1,6 +1,4 @@
 const mongoose = require("mongoose")
-const { type } = require("os")
-const { ref } = require("process")
 
 mongoose.connect("mongodb://127.0.0.1:27017/miniProject")
 
@@ -10,6 +8,10 @@ let userSchema = mongoose.Schema({
     password: String,
     email: String,
     age: Number,
+    profile: {
+        type: String,
+        default: "default.jpg"
+    },
     posts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "post"
